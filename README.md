@@ -4,12 +4,6 @@
 
 Criar um site moderno, responsivo e funcional para divulgar a Jardelson Barbearia, centralizando informações sobre serviços, profissional responsável, localização, horários de funcionamento, Instagram, WhatsApp e avaliações.
 
-## Estado atual do atendimento
-
-No momento, a barbearia funciona com apenas um profissional responsável: Jardelson.
-
-O atendimento não utiliza agendamento online ativo. A comunicação do site foi ajustada para informar atendimento por ordem de chegada e deixar o agendamento apenas como possibilidade futura.
-
 ## Tecnologias utilizadas
 
 - HTML5
