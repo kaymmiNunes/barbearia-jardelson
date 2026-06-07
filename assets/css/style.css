@@ -391,7 +391,6 @@ code {
 .contact-card p {
   color: var(--color-muted);
   font-size: 1.04rem;
-  max-width: 680px;
 }
 
 .hero-actions,
