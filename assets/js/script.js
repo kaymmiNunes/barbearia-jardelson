@@ -1,208 +1,408 @@
-const BARBERSHOP_PHONE = "5583998059479";
-const INSTAGRAM_URL = "https://www.instagram.com/barbeiro_jardel1/";
+"use strict";
 
-const menuToggle = document.querySelector(".menu-toggle");
-const navMenu = document.querySelector(".nav-menu");
-const navLinks = document.querySelectorAll(".nav-menu a[href^='#']");
-const sideLinks = document.querySelectorAll(".side-scroll a[href^='#']");
-const backToTopButton = document.querySelector(".back-to-top");
-const whatsappLinks = document.querySelectorAll(".js-whatsapp-link");
-const header = document.querySelector(".header");
-const preloader = document.querySelector("#preloader");
-const typingText = document.querySelector("#typingText");
+/**
+ * Jardelson Barbearia
+ * Arquivo responsável pelas interações do site:
+ * - Menu mobile
+ * - Links de WhatsApp
+ * - Preloader
+ * - Efeito de brilho no cursor
+ * - Animação de revelação ao rolar
+ * - Link ativo no menu
+ * - Botão voltar ao topo
+ * - Texto com efeito de digitação
+ * - Efeito 3D nos cards
+ */
 
-function buildWhatsappUrl(message) {
-  return `https://wa.me/${BARBERSHOP_PHONE}?text=${encodeURIComponent(message)}`;
+/* =========================================================
+   1. CONFIGURAÇÕES GERAIS
+========================================================= */
+
+const CONFIG = {
+  barbershopPhone: "5583998059479",
+  instagramUrl: "https://www.instagram.com/barbeiro_jardel1/",
+  defaultWhatsappMessage:
+    "Olá, Jardelson Barbearia! Gostaria de tirar uma dúvida sobre o atendimento.",
+  typingPhrases: [
+    "Corte masculino com acabamento limpo",
+    "Atendimento por ordem de chegada",
+    "Terça a sábado em Remígio-PB",
+    "Fale pelo WhatsApp ou Instagram",
+  ],
+  scrollOffset: 150,
+  backToTopVisibilityPoint: 600,
+  headerScrollPoint: 60,
+};
+
+/* =========================================================
+   2. SELETORES DO DOM
+========================================================= */
+
+const DOM = {
+  root: document.documentElement,
+  menuToggle: document.querySelector(".menu-toggle"),
+  navMenu: document.querySelector(".nav-menu"),
+  navLinks: document.querySelectorAll(".nav-menu a[href^='#']"),
+  sideLinks: document.querySelectorAll(".side-scroll a[href^='#']"),
+  backToTopButton: document.querySelector(".back-to-top"),
+  whatsappLinks: document.querySelectorAll(".js-whatsapp-link"),
+  instagramLinks: document.querySelectorAll("a[href*='instagram.com']"),
+  header: document.querySelector(".header"),
+  preloader: document.querySelector("#preloader"),
+  typingText: document.querySelector("#typingText"),
+  revealElements: document.querySelectorAll(".reveal"),
+  tiltCards: document.querySelectorAll(".tilt-card"),
+};
+
+/* =========================================================
+   3. FUNÇÕES UTILITÁRIAS
+========================================================= */
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function updateDefaultWhatsappLinks() {
-  const defaultMessage = "Olá, Jardelson Barbearia! Gostaria de tirar uma dúvida sobre o atendimento.";
+function buildWhatsappUrl(message = CONFIG.defaultWhatsappMessage) {
+  const encodedMessage = encodeURIComponent(message);
+  return `https://wa.me/${CONFIG.barbershopPhone}?text=${encodedMessage}`;
+}
 
-  whatsappLinks.forEach((link) => {
-    link.href = buildWhatsappUrl(defaultMessage);
+function isElementAvailable(element) {
+  return Boolean(element);
+}
+
+/* =========================================================
+   4. LINKS EXTERNOS
+========================================================= */
+
+function updateDefaultWhatsappLinks() {
+  if (!DOM.whatsappLinks.length) return;
+
+  DOM.whatsappLinks.forEach((link) => {
+    link.href = buildWhatsappUrl();
+    link.target = "_blank";
+    link.rel = "noopener";
   });
 }
 
-function toggleMenu() {
-  if (!navMenu || !menuToggle) return;
+function updateInstagramLinks() {
+  if (!DOM.instagramLinks.length) return;
 
-  const isOpen = navMenu.classList.toggle("open");
-  menuToggle.classList.toggle("open", isOpen);
-  menuToggle.setAttribute("aria-expanded", String(isOpen));
+  DOM.instagramLinks.forEach((link) => {
+    link.href = CONFIG.instagramUrl;
+    link.target = "_blank";
+    link.rel = "noopener";
+  });
+}
+
+/* =========================================================
+   5. MENU MOBILE
+========================================================= */
+
+function openMenu() {
+  if (!DOM.navMenu || !DOM.menuToggle) return;
+
+  DOM.navMenu.classList.add("open");
+  DOM.menuToggle.classList.add("open");
+  DOM.menuToggle.setAttribute("aria-expanded", "true");
 }
 
 function closeMenu() {
-  if (!navMenu || !menuToggle) return;
+  if (!DOM.navMenu || !DOM.menuToggle) return;
 
-  navMenu.classList.remove("open");
-  menuToggle.classList.remove("open");
-  menuToggle.setAttribute("aria-expanded", "false");
+  DOM.navMenu.classList.remove("open");
+  DOM.menuToggle.classList.remove("open");
+  DOM.menuToggle.setAttribute("aria-expanded", "false");
+}
+
+function toggleMenu() {
+  if (!DOM.navMenu || !DOM.menuToggle) return;
+
+  const isOpen = DOM.navMenu.classList.contains("open");
+
+  if (isOpen) {
+    closeMenu();
+    return;
+  }
+
+  openMenu();
 }
 
 function initMenu() {
-  if (!menuToggle || !navMenu) return;
+  if (!DOM.menuToggle || !DOM.navMenu) return;
 
-  menuToggle.addEventListener("click", toggleMenu);
-  navLinks.forEach((link) => link.addEventListener("click", closeMenu));
+  DOM.menuToggle.addEventListener("click", toggleMenu);
+
+  DOM.navLinks.forEach((link) => {
+    link.addEventListener("click", closeMenu);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMenu();
+    }
+  });
 }
+
+/* =========================================================
+   6. PRELOADER
+========================================================= */
 
 function initPreloader() {
-  if (!preloader) return;
+  if (!DOM.preloader) return;
 
   window.addEventListener("load", () => {
-    setTimeout(() => preloader.classList.add("hide"), 450);
+    window.setTimeout(() => {
+      DOM.preloader.classList.add("hide");
+    }, 450);
   });
 }
+
+/* =========================================================
+   7. EFEITO DE BRILHO NO CURSOR
+========================================================= */
 
 function initMouseGlow() {
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion) return;
+  if (prefersReducedMotion()) return;
 
-  window.addEventListener("pointermove", (event) => {
-    document.documentElement.style.setProperty("--mouse-x", `${event.clientX}px`);
-    document.documentElement.style.setProperty("--mouse-y", `${event.clientY}px`);
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+      DOM.root.style.setProperty("--mouse-x", `${event.clientX}px`);
+      DOM.root.style.setProperty("--mouse-y", `${event.clientY}px`);
+    },
+    { passive: true }
+  );
+}
+
+/* =========================================================
+   8. ANIMAÇÃO DE REVELAÇÃO AO ROLAR
+========================================================= */
+
+function initRevealAnimation() {
+  if (!DOM.revealElements.length) return;
+
+  if (!("IntersectionObserver" in window)) {
+    DOM.revealElements.forEach((element) => {
+      element.classList.add("visible");
+    });
+    return;
+  }
+
+  const revealObserver = new IntersectionObserver(
+    (entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
+      });
+    },
+    {
+      threshold: 0.14,
+    }
+  );
+
+  DOM.revealElements.forEach((element) => {
+    revealObserver.observe(element);
   });
 }
 
-function initRevealAnimation() {
-  const revealElements = document.querySelectorAll(".reveal");
-  if (!revealElements.length) return;
+/* =========================================================
+   9. MENU ATIVO DURANTE A ROLAGEM
+========================================================= */
 
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.14 }
-  );
-
-  revealElements.forEach((element) => revealObserver.observe(element));
-}
-
-function setActiveNavLink() {
+function getCurrentSectionId() {
   const sections = document.querySelectorAll("main section[id]");
-  const scrollPosition = window.scrollY + 150;
   let currentId = "inicio";
 
   sections.forEach((section) => {
     const sectionTop = section.offsetTop;
     const sectionHeight = section.offsetHeight;
     const sectionId = section.getAttribute("id");
+    const scrollPosition = window.scrollY + CONFIG.scrollOffset;
 
-    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+    const isCurrentSection =
+      scrollPosition >= sectionTop &&
+      scrollPosition < sectionTop + sectionHeight;
+
+    if (isCurrentSection) {
       currentId = sectionId;
     }
   });
 
-  navLinks.forEach((link) => {
-    link.classList.toggle("active", link.getAttribute("href") === `#${currentId}`);
+  return currentId;
+}
+
+function updateActiveLinks(currentId) {
+  const activeHref = `#${currentId}`;
+
+  DOM.navLinks.forEach((link) => {
+    link.classList.toggle("active", link.getAttribute("href") === activeHref);
   });
 
-  sideLinks.forEach((link) => {
-    link.classList.toggle("active", link.getAttribute("href") === `#${currentId}`);
+  DOM.sideLinks.forEach((link) => {
+    link.classList.toggle("active", link.getAttribute("href") === activeHref);
   });
 }
 
-function handleHeaderAndBackToTop() {
-  if (header) {
-    header.classList.toggle("scrolled", window.scrollY > 60);
-  }
+function setActiveNavLink() {
+  const currentId = getCurrentSectionId();
+  updateActiveLinks(currentId);
+}
 
-  if (backToTopButton) {
-    backToTopButton.classList.toggle("show", window.scrollY > 600);
-  }
+/* =========================================================
+   10. HEADER E BOTÃO VOLTAR AO TOPO
+========================================================= */
+
+function updateHeaderState() {
+  if (!DOM.header) return;
+
+  DOM.header.classList.toggle(
+    "scrolled",
+    window.scrollY > CONFIG.headerScrollPoint
+  );
+}
+
+function updateBackToTopState() {
+  if (!DOM.backToTopButton) return;
+
+  DOM.backToTopButton.classList.toggle(
+    "show",
+    window.scrollY > CONFIG.backToTopVisibilityPoint
+  );
 }
 
 function initBackToTop() {
-  if (!backToTopButton) return;
+  if (!DOM.backToTopButton) return;
 
-  backToTopButton.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  DOM.backToTopButton.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
   });
 }
 
-function initTypingAnimation() {
-  if (!typingText) return;
+/* =========================================================
+   11. TEXTO COM EFEITO DE DIGITAÇÃO
+========================================================= */
 
-  const phrases = [
-    "Corte masculino com acabamento limpo",
-    "Atendimento por ordem de chegada",
-    "Terça a sábado em Remígio-PB",
-    "Fale pelo WhatsApp ou Instagram"
-  ];
+function initTypingAnimation() {
+  if (!DOM.typingText || prefersReducedMotion()) return;
 
   let phraseIndex = 0;
   let charIndex = 0;
   let isDeleting = false;
 
-  function type() {
-    const currentPhrase = phrases[phraseIndex];
-    typingText.textContent = currentPhrase.slice(0, charIndex);
+  function typePhrase() {
+    const currentPhrase = CONFIG.typingPhrases[phraseIndex];
+
+    DOM.typingText.textContent = currentPhrase.slice(0, charIndex);
 
     if (!isDeleting && charIndex < currentPhrase.length) {
       charIndex += 1;
-      setTimeout(type, 55);
+      window.setTimeout(typePhrase, 55);
       return;
     }
 
     if (!isDeleting && charIndex === currentPhrase.length) {
       isDeleting = true;
-      setTimeout(type, 1200);
+      window.setTimeout(typePhrase, 1200);
       return;
     }
 
     if (isDeleting && charIndex > 0) {
       charIndex -= 1;
-      setTimeout(type, 28);
+      window.setTimeout(typePhrase, 28);
       return;
     }
 
     isDeleting = false;
-    phraseIndex = (phraseIndex + 1) % phrases.length;
-    setTimeout(type, 250);
+    phraseIndex = (phraseIndex + 1) % CONFIG.typingPhrases.length;
+    window.setTimeout(typePhrase, 250);
   }
 
-  type();
+  typePhrase();
+}
+
+/* =========================================================
+   12. EFEITO 3D NOS CARDS
+========================================================= */
+
+function applyTiltEffect(card, event) {
+  const rect = card.getBoundingClientRect();
+
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+
+  const rotateY = (x / rect.width - 0.5) * 6;
+  const rotateX = (y / rect.height - 0.5) * -6;
+
+  card.style.transform = `
+    perspective(900px)
+    rotateX(${rotateX}deg)
+    rotateY(${rotateY}deg)
+    translateY(-4px)
+  `;
+}
+
+function resetTiltEffect(card) {
+  card.style.transform = "";
 }
 
 function initTiltCards() {
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prefersReducedMotion) return;
+  if (prefersReducedMotion() || !DOM.tiltCards.length) return;
 
-  const cards = document.querySelectorAll(".tilt-card");
-
-  cards.forEach((card) => {
+  DOM.tiltCards.forEach((card) => {
     card.addEventListener("pointermove", (event) => {
-      const rect = card.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
-      const rotateY = ((x / rect.width) - 0.5) * 6;
-      const rotateX = ((y / rect.height) - 0.5) * -6;
-      card.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      applyTiltEffect(card, event);
     });
 
     card.addEventListener("pointerleave", () => {
-      card.style.transform = "";
+      resetTiltEffect(card);
     });
   });
 }
 
-function initScrollEvents() {
-  const onScroll = () => {
-    handleHeaderAndBackToTop();
-    setActiveNavLink();
-  };
+/* =========================================================
+   13. EVENTOS DE ROLAGEM
+========================================================= */
 
-  window.addEventListener("scroll", onScroll, { passive: true });
-  onScroll();
+function handleScroll() {
+  updateHeaderState();
+  updateBackToTopState();
+  setActiveNavLink();
 }
+
+function initScrollEvents() {
+  let ticking = false;
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (ticking) return;
+
+      window.requestAnimationFrame(() => {
+        handleScroll();
+        ticking = false;
+      });
+
+      ticking = true;
+    },
+    { passive: true }
+  );
+
+  handleScroll();
+}
+
+/* =========================================================
+   14. INICIALIZAÇÃO
+========================================================= */
 
 function init() {
   updateDefaultWhatsappLinks();
+  updateInstagramLinks();
   initMenu();
   initPreloader();
   initMouseGlow();
@@ -213,4 +413,4 @@ function init() {
   initScrollEvents();
 }
 
-init();
+document.addEventListener("DOMContentLoaded", init);
